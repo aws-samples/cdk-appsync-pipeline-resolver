@@ -28,5 +28,8 @@
     "aws-cdk-lib": "2.27.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.16"
+  },
+  "resolutions": {
+    "minimist": "^1.2.6"
   }
 }
