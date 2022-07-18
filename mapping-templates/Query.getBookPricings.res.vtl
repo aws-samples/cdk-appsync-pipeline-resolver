@@ -1,0 +1,36 @@
+#if($ctx.error)
+  $util.error($ctx.error.message, $ctx.error.type)
+#end
+
+#set( $dynamoResult = $ctx.prev.result )
+#set( $httpResult = $util.parseJson($ctx.result.body) )
+
+#if (!$util.isNull($httpResult.error))
+  $util.error($httpResult.error, $httpResult.statusCode)
+#end
+
+#set($priceInternal = {
+    "priceId": "Amazon",
+    "price": $dynamoResult.price,
+    "currency": $dynamoResult.currency,
+    "isbn": $dynamoResult.isbn
+})
+
+#set($prices = [$priceInternal] )
+
+#foreach( $item in $httpResult )
+    #set($priceItem = {
+      "priceId": $item.priceId,
+      "price": $item.price,
+      "currency": $item.currency,
+      "isbn": $item.isbn
+    })
+    #set($addOpp = $prices.add($priceItem))
+#end
+
+$util.toJson({
+  "name": $dynamoResult.name,
+  "isbn": $dynamoResult.isbn,
+  "author": $dynamoResult.author,
+  "prices": $prices
+})

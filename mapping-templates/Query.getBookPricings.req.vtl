@@ -1,0 +1,11 @@
+#set( $bookIsbn = $util.defaultIfNull($context.args.isbn, "") )
+{
+    "version": "2018-05-29",
+    "method": "GET",
+    "params" : {
+        "headers" : {
+            "Content-Type": "application/json"
+        }
+    },
+    "resourcePath": $util.toJson("/book/${bookIsbn}")
+}

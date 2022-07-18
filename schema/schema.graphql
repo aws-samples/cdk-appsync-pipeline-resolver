@@ -1,0 +1,18 @@
+type Book {
+    isbn: String!
+    name: String!
+    author: String!
+    description: String
+    prices: [BookPrice!]!
+}
+
+type BookPrice {
+    priceId: String!
+    isbn: String!
+    price: Float!
+    currency: String!
+}
+
+type Query {
+  getBookPricing(isbn: String!) : Book
+}

@@ -1,0 +1,9 @@
+#if($ctx.error)
+	$util.error($ctx.error.message, $ctx.error.type)
+#end
+
+#if(!$ctx.result)
+    $util.error("Item not found", "404")
+#end
+
+$util.toJson($ctx.result)
