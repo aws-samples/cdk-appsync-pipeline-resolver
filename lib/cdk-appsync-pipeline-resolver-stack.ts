@@ -1,6 +1,7 @@
-import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as appsync from '@aws-cdk/aws-appsync-alpha';
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 import {
   getMappingTemplatePath,
@@ -29,7 +30,7 @@ export class CdkAppsyncPipelineResolverStack extends Stack {
       },
       authorizationConfig: {
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY
+          authorizationType: appsync.AuthorizationType.IAM
         }
       }
     });
@@ -40,8 +41,25 @@ export class CdkAppsyncPipelineResolverStack extends Stack {
     // HTTP Data Source
     const httpDataSource = api.addHttpDataSource(
       'httpDataSource',
-      apiEndpoint
+      apiEndpoint,
+      {
+        authorizationConfig: {
+          signingRegion: Stack.of(this).region,
+          signingServiceName: 'execute-api'
+        }
+      }
     );
+
+    const appSyncHttpDataSourceRole = new iam.Role(this, 'appSyncHttpDataSourceRole', {
+      assumedBy: new iam.ServicePrincipal('appsync.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'AmazonAPIGatewayInvokeFullAccess',
+        ),
+      ],
+    });
+
+    httpDataSource.ds.serviceRoleArn = appSyncHttpDataSourceRole.roleArn;
     
     // AppSync Functions
     const f1 = new appsync.AppsyncFunction(this, 'f1', {
@@ -69,9 +87,5 @@ export class CdkAppsyncPipelineResolverStack extends Stack {
       requestMappingTemplate: appsync.MappingTemplate.fromString('{}'),
       responseMappingTemplate:appsync.MappingTemplate.fromString('$util.toJson($ctx.result)'),
     })
-    
-    new CfnOutput(this, "appSyncApiKey", {
-      value: api.apiKey ?? "NO_API_KEY"
-    });
   }
 }
